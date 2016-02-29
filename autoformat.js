@@ -71,7 +71,7 @@ var formatConsts = (data) => {
         replaced = [];
 
     // Format const declarations
-    data = data.replace(/const ([a-zA-Z0-9]+)/g , (m, sub) => {
+    data = data.replace(/const ([a-zA-Z0-9_]+)/g , (m, sub) => {
         // Add constant name to list of constants used
         consts.push(sub);
 
@@ -90,6 +90,40 @@ var formatConsts = (data) => {
 };
 
 /**
+ * Format variables to camelCase (or lower_case)
+ */
+var formatVars = (data) => {
+    var vars = [],
+        replaced = [];
+
+    // Format var declarations that are not pointers to objects
+    // ([a-zA-Z0-9_]+) - variable name
+    // ([\s:]*.*) - variable type (optional)
+    // (:=)? - variable declaration (optional)
+    data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*.*)(:=)?/g , (m, sub, type) => {
+        // Replace only if the type is not a pointer (which in turn means the declaration is nil)
+        if (type.indexOf("pointer") === -1) {
+            // Add variable name to list of variables used
+            vars.push(sub);
+
+            // Convert from SentenceCase to camelCase
+            sub = sub[0].toLowerCase() + sub.substr(1);
+            // or to lower_case
+            // sub = sub.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
+
+            // Add converted name to list of converted variables
+            replaced.push(sub);
+        }
+
+        return "var " + sub + type;
+    });
+
+    data = __formatSubsequentUses(vars, replaced, data);
+
+    return data;
+};
+
+/**
  * Main procedure
  */
 files.forEach(name => {
@@ -99,6 +133,7 @@ files.forEach(name => {
         if (err) throw err;
 
         data = formatConsts(data);
+        data = formatVars(data);
         data = formatBoolFuncs(data);
 
         fs.writeFile(name + ext, data, err => {
