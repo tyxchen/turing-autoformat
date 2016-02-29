@@ -117,19 +117,34 @@ var exports = (() => {
 
         return data;
     };
+    
+    /**
+     * Fix incorrect placement of comments
+     */
+    var formatComments = (data) => {
+        return data.replace(/(.+)%(.+)/g, (m, statement, comment) => {
+            // Checks if the number of unescaped quotes before the % sign is odd
+            // If it is, the % sign is in a string and we don't do any modifications
+            if ((statement.match(/[^\\]"/g) || []).length % 2 || (statement.match(/[^\\]'/g) || []).length % 2)
+                return m;
+            
+            return "%" + comment + "\n" + statement;
+        });
+    };
 
     /**
      * Wrapper for all formatting functions
      */
     var format = (data) => {
-        return formatVars(
-            formatConsts(
-                formatBoolFuncs(data)
-            )
-        );
+        data = formatComments(data);
+        data = formatConsts(data);
+        data = formatVars(data);
+        data = formatBoolFuncs(data);
+        return data;
     };
     
     return {
+        formatComments,
         formatVars,
         formatConsts,
         formatBoolFuncs,
