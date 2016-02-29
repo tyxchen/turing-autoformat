@@ -40,14 +40,17 @@ var exports = (() => {
             replaced = [];
 
         // Format function declarations
-        data = data.replace(/function (.+?)(?=[\s:\(].*(?=boolean))/g, (m, sub) => {
-            // Add function name to list of functions used
-            funcs.push(sub)
+        data = data.replace(/function (.+?)(?=[\s:\(].*(?=boolean))/g, (m, name) => {
+            // Replace only if function name does not start with `is_` already
+            if (name.slice(0, 3) !== "is_") {
+                // Add function name to list of functions used
+                funcs.push(name)
 
-            // Add converted name to list of converted function names
-            replaced.push("is_" + sub);
+                // Add converted name to list of converted function names
+                replaced.push("is_" + name);
+            }
 
-            return "function " + sub;
+            return "function " + name;
         });
 
         data = __formatSubsequentUses(funcs, replaced, data);
@@ -63,17 +66,17 @@ var exports = (() => {
             replaced = [];
 
         // Format const declarations
-        data = data.replace(/const ([a-zA-Z0-9_]+)/g, (m, sub) => {
+        data = data.replace(/const ([a-zA-Z0-9_]+)/g, (m, name) => {
             // Add constant name to list of constants used
-            consts.push(sub);
+            consts.push(name);
 
             // Convert from camelCase to UPPER_CASE
-            sub = sub.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toUpperCase();
+            name = name.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toUpperCase();
 
             // Add converted name to list of converted constants
-            replaced.push(sub);
+            replaced.push(name);
 
-            return "const " + sub;
+            return "const " + name;
         });
 
         data = __formatSubsequentUses(consts, replaced, data);
@@ -92,22 +95,22 @@ var exports = (() => {
         // ([a-zA-Z0-9_]+) - variable name
         // ([\s:]*.*) - variable type (optional)
         // (:=)? - variable declaration (optional)
-        data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*.*)(:=)?/g, (m, sub, type) => {
+        data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*.*)(:=)?/g, (m, name, type) => {
             // Replace only if the type is not a pointer (which in turn means the declaration is nil)
             if (type.indexOf("pointer") === -1) {
                 // Add variable name to list of variables used
-                vars.push(sub);
+                vars.push(name);
 
                 // Convert from SentenceCase to camelCase
-                sub = sub[0].toLowerCase() + sub.substr(1);
+                name = name[0].toLowerCase() + name.substr(1);
                 // or to lower_case
-                // sub = sub.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
+                // name = name.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
 
                 // Add converted name to list of converted variables
-                replaced.push(sub);
+                replaced.push(name);
             }
 
-            return "var " + sub + type;
+            return "var " + name + type;
         });
 
         data = __formatSubsequentUses(vars, replaced, data);
