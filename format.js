@@ -173,7 +173,7 @@ var TuringAutoformat = (passedFlags) => {
         return data.replace(/([ \t]*)(.+)%(.+)/g, (m, indentation, statement, comment) => {
             // Checks if the number of unescaped quotes before the % sign is odd
             // If it is, the % sign is in a string and we don't do any modifications
-            if ((statement.match(/[^\\]"/g) || []).length % 2 || (statement.match(/[^\\]'/g) || []).length % 2)
+            if ((statement.match(/[^\\]"/g) || []).length % 2 || (statement.match(/[^\\]'/g) || []).length % 2 || statement.trim().length === 0)
                 return m;
 
             return indentation + "%" + comment + "\n" + indentation + statement;
