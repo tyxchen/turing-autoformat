@@ -1,4 +1,4 @@
-module.exports = (passedFlags) => {
+var TuringAutoformat = (passedFlags) => {
 
     var flags = {
         lowerCaseVariables: false,
@@ -199,3 +199,11 @@ module.exports = (passedFlags) => {
         format
     };
 };
+
+if (typeof window !== "undefined") {
+    // browser environment
+    window.TuringAutoformat = TuringAutoformat;
+} else {
+    // NodeJS environment
+    module.exports = TuringAutoformat;
+}
