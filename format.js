@@ -129,9 +129,21 @@ module.exports = (passedFlags) => {
                 vars.push(name);
 
                 // Convert from SentenceCase to camelCase
-                name = name[0].toLowerCase() + name.substr(1);
+                name = name[0].toLowerCase() + name.slice(1);
+
                 // or to lower_case
-                // name = name.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
+                if (flags.lowerCaseVariables) {
+                    name = name.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
+                }
+
+                // Add converted name to list of converted variables
+                replaced.push(name);
+            } else if (flags.sentenceCasePointers) {
+                // Add variable name to list of variables used
+                vars.push(name);
+
+                // Capitalize first letter
+                name = name[0].toUpperCase() + name.slice(1);
 
                 // Add converted name to list of converted variables
                 replaced.push(name);
