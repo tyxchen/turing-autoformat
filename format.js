@@ -1,4 +1,31 @@
-var exports = (() => {
+module.exports = (passedFlags) => {
+
+    var flags = {
+        lowerCaseVariables: false,
+        sentenceCasePointers: false
+    };
+
+    if (passedFlags instanceof Object) {
+        for (var flag in passedFlags) {
+            var value = passedFlags[flag];
+
+            switch (value) {
+            case 1:
+            case "1":
+            case "true":
+                value = true;
+                break;
+            case 0:
+            case "0":
+            case "false":
+                value = false;
+                break;
+            }
+
+            flags[flag] = value;
+        }
+    }
+
     /**
      * Functions
      */
@@ -150,6 +177,4 @@ var exports = (() => {
         formatBoolFuncs,
         format
     };
-})();
-
-module.exports = exports;
+};
