@@ -123,22 +123,31 @@ module.exports = (passedFlags) => {
         // ([\s:]*.*) - variable type (optional)
         // (:=)? - variable declaration (optional)
         data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*.*)(:=)?/g, (m, name, type) => {
-            // Replace only if the type is not a pointer (which in turn means the declaration is nil)
-            if (type.indexOf("pointer") === -1) {
+            if (flags.lowerCaseVariables) {
+                // Flag set to format variables in lower_case
+
+                // Add variable name to list of variables used
+                vars.push(name);
+
+                // Convert to lower_case
+                name = name.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
+
+                // Add converted name to list of converted variables
+                replaced.push(name);
+            } else if (type.indexOf("pointer") === -1) {
+                // Replace only if the type is not a pointer (which in turn means the declaration is nil)
+
                 // Add variable name to list of variables used
                 vars.push(name);
 
                 // Convert from SentenceCase to camelCase
                 name = name[0].toLowerCase() + name.slice(1);
 
-                // or to lower_case
-                if (flags.lowerCaseVariables) {
-                    name = name.replace(/([a-z])(?=[A-Z0-9])/g, "$1_").toLowerCase();
-                }
-
                 // Add converted name to list of converted variables
                 replaced.push(name);
             } else if (flags.sentenceCasePointers) {
+                // Editing pointer, flag for SentenceCase pointers set
+
                 // Add variable name to list of variables used
                 vars.push(name);
 
