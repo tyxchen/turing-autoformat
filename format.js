@@ -43,12 +43,13 @@ var TuringAutoformat = (passedFlags) => {
             // fpStringRegex: Matches false positive uses of the formatted name in strings
             // fpOpenRegex: Matches false positive uses of the formatted name in open expressions
             //              e.g. single-line comments
-            var unformattedRegex = new RegExp(cur, 'g');
+            var unformattedRegex = new RegExp('([ \t\n])' + cur + '([ \t\r\n])', 'g');
             var fpStringRegex = new RegExp('(["\'].*)' + replacement[i] + '(?=.*?["\'])', 'g');
 
-            data = data.replace(unformattedRegex, replacement[i]);
+            // data = data.replace(unformattedRegex, replacement[i]);
+            data = data.replace(unformattedRegex, "$1" + replacement[i] + "$2");
             // Fix any accidental formatting
-            data = data.replace(fpStringRegex, (m, sub) => sub + cur);
+            data = data.replace(fpStringRegex, "$1" + cur);
         });
 
         return data;
@@ -93,7 +94,7 @@ var TuringAutoformat = (passedFlags) => {
             replaced = [];
 
         // Format const declarations
-        data = data.replace(/const ([a-zA-Z0-9_]+)/g, (m, name) => {
+        data = data.replace(/([^@])const ([a-zA-Z0-9_]+)/g, (m, s, name) => {
             // Add constant name to list of constants used
             consts.push(name);
 
@@ -103,7 +104,7 @@ var TuringAutoformat = (passedFlags) => {
             // Add converted name to list of converted constants
             replaced.push(name);
 
-            return "const " + name;
+            return s + "const " + name;
         });
 
         data = __formatSubsequentUses(consts, replaced, data);
