@@ -121,9 +121,8 @@ var TuringAutoformat = (passedFlags) => {
 
         // Format var declarations that are not pointers to objects
         // ([a-zA-Z0-9_]+) - variable name
-        // ([\s:]*.*) - variable type (optional)
-        // (:=)? - variable declaration (optional)
-        data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*.*)(:=)?/g, (m, name, type) => {
+        // ([\s:]*\w+) - variable type (optional)
+        data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*\w+)/g, (m, name, type) => {
             if (flags.lowerCaseVariables) {
                 // Flag set to format variables in lower_case
 
