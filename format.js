@@ -60,17 +60,17 @@ var TuringAutoformat = (passedFlags) => {
 
     /**
      * Automatically prepend `is_` to boolean functions
-     *
-     * (.+) - Matches the function name
-     * (?=[\s:\(] - Matches the ending delimiter for the function name. Whitespace, colon (define type),
-     *               or left bracket (define arguments)
-     * (?=boolean)) - Matches only functions that return a boolean type
      */
     exports.formatBoolFuncs = (data) => {
         var funcs = [],
             replaced = [];
 
         // Format function declarations
+        // (.+) - Matches the function name
+        // (?=[\s:\(] - Matches the ending delimiter for the function name. Whitespace, colon (define type),
+        //              or left bracket (define arguments)
+        // .* - Matches the function's arguments and type delimiter
+        // (?=boolean)) - Matches only functions that return a boolean type
         data = data.replace(/function (.+?)(?=[\s:\(].*(?=boolean))/g, (m, name) => {
             // Replace only if function name does not start with `is_` already
             if (name.slice(0, 3) !== "is_") {
@@ -97,7 +97,10 @@ var TuringAutoformat = (passedFlags) => {
             replaced = [];
 
         // Format const declarations
-        data = data.replace(/([^@])const ([a-zA-Z0-9_]+)/g, (m, s, name) => {
+        // ([^@]|^) - ignore Java-style doc comments, but if no preceding char is found (SOF)
+        //            use the start-of-line character
+        // (\w+) - constant name
+        data = data.replace(/([^@]|^)const (\w+)/g, (m, s, name) => {
             // Add constant name to list of constants used
             consts.push(name);
 
@@ -123,9 +126,11 @@ var TuringAutoformat = (passedFlags) => {
             replaced = [];
 
         // Format var declarations that are not pointers to objects
-        // ([a-zA-Z0-9_]+) - variable name
+        // ([^@]|^) - ignore Java-style doc comments, but if no preceding char is found (SOF)
+        //            use the start-of-line character
+        // (\w+) - variable name
         // ([\s:]*\w+) - variable type (optional)
-        data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*\w+)/g, (m, name, type) => {
+        data = data.replace(/([^@]|^)var (\w+)([\s:]*\w+)/g, (m, s, name, type) => {
             if (flags.lowerCaseVariables) {
                 // Flag set to format variables in lower_case
 
@@ -161,7 +166,7 @@ var TuringAutoformat = (passedFlags) => {
                 replaced.push(name);
             }
 
-            return "var " + name + type;
+            return s + "var " + name + type;
         });
 
         data = __formatSubsequentUses(vars, replaced, data);
@@ -173,6 +178,10 @@ var TuringAutoformat = (passedFlags) => {
      * Fix incorrect placement of comments
      */
     exports.formatComments = (data) => {
+        // Match comment declarations at the end of statements
+        // ([ \t]*) - Indentation of the line
+        // (.+) - Statement preceding comment
+        // %(.+) - The comment itself
         return data.replace(/([ \t]*)(.+)%(.+)/g, (m, indentation, statement, comment) => {
             // Checks if the number of unescaped quotes before the % sign is odd
             // If it is, the % sign is in a string and we don't do any modifications
