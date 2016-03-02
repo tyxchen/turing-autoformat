@@ -48,7 +48,7 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
             // fpStringRegex: Matches false positive uses of the formatted name in strings
             // fpOpenRegex: Matches false positive uses of the formatted name in open expressions
             //              e.g. single-line comments
-            var unformattedRegex = new RegExp('([\( \t\n])' + cur + '([;\) \t\r\n])', 'g');
+            var unformattedRegex = new RegExp('([\( \t\n])' + cur + '([,;\) \t\r\n])', 'g');
             var fpStringRegex = new RegExp('(["\'].*)' + replacement[i] + '(?=.*?["\'])', 'g');
 
             // data = data.replace(unformattedRegex, replacement[i]);
