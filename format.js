@@ -1,5 +1,8 @@
 var TuringAutoformat = (passedFlags) => {
 
+    var exports = {},
+        formatTempl = [];
+
     var flags = {
         lowerCaseVariables: false,
         sentenceCasePointers: false
@@ -63,7 +66,7 @@ var TuringAutoformat = (passedFlags) => {
      *               or left bracket (define arguments)
      * (?=boolean)) - Matches only functions that return a boolean type
      */
-    var formatBoolFuncs = (data) => {
+    exports.formatBoolFuncs = (data) => {
         var funcs = [],
             replaced = [];
 
@@ -89,7 +92,7 @@ var TuringAutoformat = (passedFlags) => {
     /**
      * Format constants from camelCase to UPPER_CASE
      */
-    var formatConsts = (data) => {
+    exports.formatConsts = (data) => {
         var consts = [],
             replaced = [];
 
@@ -115,7 +118,7 @@ var TuringAutoformat = (passedFlags) => {
     /**
      * Format variables to camelCase (or lower_case)
      */
-    var formatVars = (data) => {
+    exports.formatVars = (data) => {
         var vars = [],
             replaced = [];
 
@@ -169,7 +172,7 @@ var TuringAutoformat = (passedFlags) => {
     /**
      * Fix incorrect placement of comments
      */
-    var formatComments = (data) => {
+    exports.formatComments = (data) => {
         return data.replace(/([ \t]*)(.+)%(.+)/g, (m, indentation, statement, comment) => {
             // Checks if the number of unescaped quotes before the % sign is odd
             // If it is, the % sign is in a string and we don't do any modifications
@@ -181,23 +184,20 @@ var TuringAutoformat = (passedFlags) => {
     };
 
     /**
-     * Wrapper for all formatting functions
+     * Create wrapper for all formatting functions
      */
-    var format = (data) => {
-        data = formatComments(data);
-        data = formatConsts(data);
-        data = formatVars(data);
-        data = formatBoolFuncs(data);
-        return data;
-    };
 
-    return {
-        formatComments,
-        formatVars,
-        formatConsts,
-        formatBoolFuncs,
-        format
-    };
+    for (var f in exports) {
+        if (exports.hasOwnProperty(f) && exports[f] !== undefined) {
+            formatTempl.push('data=this.' + f + '(data);');
+        }
+    }
+
+    formatTempl.push('return data;');
+
+    exports.format = new Function('data', formatTempl.join('')).bind(exports);
+
+    return exports;
 };
 
 if (typeof window !== "undefined") {
