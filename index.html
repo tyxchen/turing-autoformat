@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Turing Autoformat</title>
+    
+    <style>
+    html,body,div,button,textarea,pre,code,a{box-sizing:border-box;padding:0;margin:0;}
+    .full-width > * {
+        width: 100%;
+    }
+    .full-height > * {
+        height: 100%;
+    }
+    .wrapper {
+        display: inline-block;
+        float: left;
+        width: 50%;
+        height: calc(100vh - 120px);
+        padding: 1em;
+    }
+    .clear {
+        clear: both; 
+    }
+    pre {
+        overflow: auto;
+    }
+    .options-wrapper {
+        height: 120px;
+        padding: 1em;
+    }
+    .formatters, .flags {
+        width: calc(50% - 40px);
+        height: 100%;
+        padding: 0;
+    }
+    .btn {
+        width: 80px;
+        height: 100%;
+        background-color: red;
+        color: white;
+    }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="full-width full-height wrapper">
+            <textarea id="input"></textarea>
+        </div>
+        <div class="full-width full-height wrapper">
+            <pre><code id="output"></code></pre>
+        </div>
+        <div class="clear"></div>
+        <div class="options-wrapper">
+            <div class="formatters wrapper">
+                <label>
+                    <input type="checkbox" name="format" checked>
+                    Use all formatters
+                </label>
+                <label>
+                    <input type="checkbox" name="formatComments" data-disabled="format" checked disabled>
+                    Format comments
+                </label>
+                <label>
+                    <input type="checkbox" name="formatConsts" data-disabled="format" checked disabled>
+                    Format constant names
+                </label>
+                <label>
+                    <input type="checkbox" name="formatVars" data-disabled="format" checked disabled>
+                    Format variable names
+                </label>
+                <label>
+                    <input type="checkbox" name="formatBoolFuncs" data-disabled="format" checked disabled>
+                    Format boolean function names
+                </label>
+            </div>
+            <div class="flags wrapper">
+                <label>
+                    <input type="checkbox" name="lowerCaseVariables">
+                    Format variable names as lower_case instead of camelCase
+                </label>
+                <label>
+                    <input type="checkbox" name="sentenceCasePointers" data-disabled="lowerCaseVariables">
+                    Format pointer names in SentenceCase instead of camelCase
+                </label>
+            </div>
+            <a class="btn wrapper" id="go" href="#">
+                Go
+            </a>
+        </div>
+    </main>
+
+    <script src="./dist/format.js"></script>
+
+    <script>
+    (function () {
+        var $ = document.querySelector.bind(document),
+            $$ = document.querySelectorAll.bind(document),
+            disabled = {},
+            flags = {},
+            formatters = [];
+
+        var onChangeHandler = function () {
+            var name = this.getAttribute('name');
+            if (disabled.hasOwnProperty(name)) {
+                for (var i in disabled[name]) {
+                    $("[name='" + disabled[name][i] + "']").disabled = !$("[name='" + disabled[name][i] + "']").disabled;
+                }
+            }
+            
+            if (this.parentNode.parentNode.classList.contains('flags')) {
+                flags[name] = this.checked;
+            } else if (this.parentNode.parentNode.classList.contains('formatters') && name !== "format") {
+                if (this.checked) {
+                    formatters.push(name);
+                } else {
+                    formatters.splice(formatters.indexOf(name), 1);
+                }
+            }
+        };
+
+        var checkboxes = $$("[type='checkbox']")
+        for (var c in checkboxes) {
+            if (checkboxes.hasOwnProperty(c)) {
+                var checkbox = checkboxes[c],
+                    name = checkbox.getAttribute('name');
+                
+                if (checkbox.hasAttribute('data-disabled')) {
+                    var disablers = checkbox.getAttribute('data-disabled').split(' ');
+                    
+                    disablers.forEach(function (d) {
+                        if (Array.isArray(disabled[d])) {
+                            disabled[d].push(name);
+                        } else {
+                            disabled[d] = [name];
+                        }
+                    });
+                }
+                
+                if (checkbox.parentNode.parentNode.classList.contains('flags')) {
+                    flags[name] = checkbox.checked;
+                } else if (checkbox.parentNode.parentNode.classList.contains('formatters') && checkbox.checked && name !== "format") {
+                    formatters.push(name);
+                }
+                
+                checkbox.addEventListener('change', onChangeHandler.bind(checkbox), false);
+            }
+        }
+
+        var onChangeHandler = function () {
+            var name = this.getAttribute('name');
+            if (disabled.hasOwnProperty(name)) {
+                for (var i in disabled[name]) {
+                    $("[name='" + disabled[name][i] + "']").disabled = !$("[name='" + disabled[name][i] + "']").disabled;
+                }
+            }
+            
+            if (this.parentNode.parentNode.classList.contains('flags')) {
+                flags[name] = this.checked;
+            } else if (this.parentNode.parentNode.classList.contains('formatters') && name !== "format") {
+                if (this.checked) {
+                    formatters.push(name);
+                } else {
+                    formatters.splice(formatters.indexOf(name), 1);
+                }
+            }
+        };
+
+        var checkboxes = $$("[type='checkbox']")
+        for (var c in checkboxes) {
+            if (checkboxes.hasOwnProperty(c)) {
+                var checkbox = checkboxes[c],
+                    name = checkbox.getAttribute('name');
+                
+                if (checkbox.hasAttribute('data-disabled')) {
+                    var disablers = checkbox.getAttribute('data-disabled').split(' ');
+                    
+                    disablers.forEach(function (d) {
+                        if (Array.isArray(disabled[d])) {
+                            disabled[d].push(name);
+                        } else {
+                            disabled[d] = [name];
+                        }
+                    });
+                }
+                
+                if (checkbox.parentNode.parentNode.classList.contains('flags')) {
+                    flags[name] = checkbox.checked;
+                } else if (checkbox.parentNode.parentNode.classList.contains('formatters') && checkbox.checked && name !== "format") {
+                    formatters.push(name);
+                }
+                
+                checkbox.addEventListener('change', onChangeHandler.bind(checkbox), false);
+            }
+        }
+        
+        $('#go').addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var input = $('#input').value,
+                format = TuringAutoformat(flags);
+
+            if ($("[name='format']").checked) {
+                input = format.format(input);
+            } else {
+                for (var f in formatters) {
+                    input = format[formatters[f]].call(this, input);
+                }
+            }
+            
+            $('#output').textContent = input;
+        }, false);
+    })();
+    </script>
+</body>
+</html>
