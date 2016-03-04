@@ -146,53 +146,6 @@
                 checkbox.addEventListener('change', onChangeHandler.bind(checkbox), false);
             }
         }
-
-        var onChangeHandler = function () {
-            var name = this.getAttribute('name');
-            if (disabled.hasOwnProperty(name)) {
-                for (var i in disabled[name]) {
-                    $("[name='" + disabled[name][i] + "']").disabled = !$("[name='" + disabled[name][i] + "']").disabled;
-                }
-            }
-            
-            if (this.parentNode.parentNode.classList.contains('flags')) {
-                flags[name] = this.checked;
-            } else if (this.parentNode.parentNode.classList.contains('formatters') && name !== "format") {
-                if (this.checked) {
-                    formatters.push(name);
-                } else {
-                    formatters.splice(formatters.indexOf(name), 1);
-                }
-            }
-        };
-
-        var checkboxes = $$("[type='checkbox']")
-        for (var c in checkboxes) {
-            if (checkboxes.hasOwnProperty(c)) {
-                var checkbox = checkboxes[c],
-                    name = checkbox.getAttribute('name');
-                
-                if (checkbox.hasAttribute('data-disabled')) {
-                    var disablers = checkbox.getAttribute('data-disabled').split(' ');
-                    
-                    disablers.forEach(function (d) {
-                        if (Array.isArray(disabled[d])) {
-                            disabled[d].push(name);
-                        } else {
-                            disabled[d] = [name];
-                        }
-                    });
-                }
-                
-                if (checkbox.parentNode.parentNode.classList.contains('flags')) {
-                    flags[name] = checkbox.checked;
-                } else if (checkbox.parentNode.parentNode.classList.contains('formatters') && checkbox.checked && name !== "format") {
-                    formatters.push(name);
-                }
-                
-                checkbox.addEventListener('change', onChangeHandler.bind(checkbox), false);
-            }
-        }
         
         $('#go').addEventListener('click', function (e) {
             e.preventDefault();
