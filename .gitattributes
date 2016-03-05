@@ -1,0 +1,2 @@
+# Set Turing test files to always be CRLF
+*.t text eol=crlf
