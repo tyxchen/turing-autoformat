@@ -2,6 +2,9 @@
 
 var TuringAutoformat = function TuringAutoformat(passedFlags) {
 
+    var exports = {},
+        formatTempl = [];
+
     var flags = {
         lowerCaseVariables: false,
         sentenceCasePointers: false
@@ -45,7 +48,7 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
             // fpStringRegex: Matches false positive uses of the formatted name in strings
             // fpOpenRegex: Matches false positive uses of the formatted name in open expressions
             //              e.g. single-line comments
-            var unformattedRegex = new RegExp('([ \t\n])' + cur + '([ \t\r\n])', 'g');
+            var unformattedRegex = new RegExp('([\( \t\n])' + cur + '([,;\) \t\r\n])', 'g');
             var fpStringRegex = new RegExp('(["\'].*)' + replacement[i] + '(?=.*?["\'])', 'g');
 
             // data = data.replace(unformattedRegex, replacement[i]);
@@ -59,17 +62,17 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
 
     /**
      * Automatically prepend `is_` to boolean functions
-     *
-     * (.+) - Matches the function name
-     * (?=[\s:\(] - Matches the ending delimiter for the function name. Whitespace, colon (define type),
-     *               or left bracket (define arguments)
-     * (?=boolean)) - Matches only functions that return a boolean type
      */
-    var formatBoolFuncs = function formatBoolFuncs(data) {
+    exports.formatBoolFuncs = function (data) {
         var funcs = [],
             replaced = [];
 
         // Format function declarations
+        // (.+) - Matches the function name
+        // (?=[\s:\(] - Matches the ending delimiter for the function name. Whitespace, colon (define type),
+        //              or left bracket (define arguments)
+        // .* - Matches the function's arguments and type delimiter
+        // (?=boolean)) - Matches only functions that return a boolean type
         data = data.replace(/function (.+?)(?=[\s:\(].*(?=boolean))/g, function (m, name) {
             // Replace only if function name does not start with `is_` already
             if (name.slice(0, 3) !== "is_") {
@@ -91,12 +94,15 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
     /**
      * Format constants from camelCase to UPPER_CASE
      */
-    var formatConsts = function formatConsts(data) {
+    exports.formatConsts = function (data) {
         var consts = [],
             replaced = [];
 
         // Format const declarations
-        data = data.replace(/([^@])const ([a-zA-Z0-9_]+)/g, function (m, s, name) {
+        // ([^@]|^) - ignore Java-style doc comments, but if no preceding char is found (SOF)
+        //            use the start-of-line character
+        // (\w+) - constant name
+        data = data.replace(/([^@]|^)const (\w+)/g, function (m, s, name) {
             // Add constant name to list of constants used
             consts.push(name);
 
@@ -117,15 +123,16 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
     /**
      * Format variables to camelCase (or lower_case)
      */
-    var formatVars = function formatVars(data) {
+    exports.formatVars = function (data) {
         var vars = [],
             replaced = [];
 
         // Format var declarations that are not pointers to objects
-        // ([a-zA-Z0-9_]+) - variable name
-        // ([\s:]*.*) - variable type (optional)
-        // (:=)? - variable declaration (optional)
-        data = data.replace(/var ([a-zA-Z0-9_]+)([\s:]*.*)(:=)?/g, function (m, name, type) {
+        // ([^@]|^) - ignore Java-style doc comments, but if no preceding char is found (SOF)
+        //            use the start-of-line character
+        // (\w+) - variable name
+        // ([\s:]*\w+) - variable type (optional)
+        data = data.replace(/([^@]|^)var (\w+)([\s:]*\w+)/g, function (m, s, name, type) {
             if (flags.lowerCaseVariables) {
                 // Flag set to format variables in lower_case
 
@@ -161,7 +168,7 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
                 replaced.push(name);
             }
 
-            return "var " + name + type;
+            return s + "var " + name + type;
         });
 
         data = __formatSubsequentUses(vars, replaced, data);
@@ -172,7 +179,11 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
     /**
      * Fix incorrect placement of comments
      */
-    var formatComments = function formatComments(data) {
+    exports.formatComments = function (data) {
+        // Match comment declarations at the end of statements
+        // ([ \t]*) - Indentation of the line
+        // (.+) - Statement preceding comment
+        // %(.+) - The comment itself
         return data.replace(/([ \t]*)(.+)%(.+)/g, function (m, indentation, statement, comment) {
             // Checks if the number of unescaped quotes before the % sign is odd
             // If it is, the % sign is in a string and we don't do any modifications
@@ -183,23 +194,20 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
     };
 
     /**
-     * Wrapper for all formatting functions
+     * Create wrapper for all formatting functions
      */
-    var format = function format(data) {
-        data = formatComments(data);
-        data = formatConsts(data);
-        data = formatVars(data);
-        data = formatBoolFuncs(data);
-        return data;
-    };
 
-    return {
-        formatComments: formatComments,
-        formatVars: formatVars,
-        formatConsts: formatConsts,
-        formatBoolFuncs: formatBoolFuncs,
-        format: format
-    };
+    for (var f in exports) {
+        if (exports.hasOwnProperty(f) && exports[f] !== undefined) {
+            formatTempl.push('data=this.' + f + '(data);');
+        }
+    }
+
+    formatTempl.push('return data;');
+
+    exports.format = new Function('data', formatTempl.join('')).bind(exports);
+
+    return exports;
 };
 
 if (typeof window !== "undefined") {
