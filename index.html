@@ -3,9 +3,15 @@
 <head>
     <meta charset="utf-8">
     <title>Turing Autoformat</title>
-    
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+
     <style>
-    html,body,div,button,textarea,pre,code,a{box-sizing:border-box;padding:0;margin:0;}
+    html,body,div,dd,dl,ul,ol,li,button,textarea,pre,code,a{box-sizing:border-box;padding:0;margin:0;}
+    body {
+        font: 1em/1.5 Lato, 'Helvetica Neue', HelveticaNeue, Helvetica, Arial, sans-serif;
+    }
+
     .full-width > * {
         width: 100%;
     }
@@ -16,8 +22,8 @@
         display: inline-block;
         float: left;
         width: 50%;
-        height: calc(100vh - 120px);
-        padding: 1em;
+        height: 100%;
+        padding: 0;
     }
     .clear {
         clear: both; 
@@ -25,68 +31,90 @@
     pre {
         overflow: auto;
     }
-    .options-wrapper {
-        height: 120px;
+    .input, .output {
+        height: calc(100vh - 7em);
         padding: 1em;
     }
-    .formatters, .flags {
-        width: calc(50% - 40px);
-        height: 100%;
-        padding: 0;
+    .options-wrapper {
+        height: 7em;
+        padding: 1em;
+    }
+    .flags {
+        width: calc(50% - 6em);
     }
     .btn {
-        width: 80px;
+        width: 6em;
         height: 100%;
         background-color: red;
         color: white;
+        border: 1px solid black;
     }
     </style>
 </head>
 <body>
     <main>
-        <div class="full-width full-height wrapper">
+        <div class="full-width full-height input wrapper">
             <textarea id="input"></textarea>
         </div>
-        <div class="full-width full-height wrapper">
+        <div class="full-width full-height output wrapper">
             <pre><code id="output"></code></pre>
         </div>
         <div class="clear"></div>
         <div class="options-wrapper">
             <div class="formatters wrapper">
                 <label>
-                    <input type="checkbox" name="format" checked>
+                    <input type="checkbox" class="formatter" name="format" checked>
                     Use all formatters
                 </label>
-                <label>
-                    <input type="checkbox" name="formatComments" data-disabled="format" checked disabled>
-                    Format comments
-                </label>
-                <label>
-                    <input type="checkbox" name="formatConsts" data-disabled="format" checked disabled>
-                    Format constant names
-                </label>
-                <label>
-                    <input type="checkbox" name="formatVars" data-disabled="format" checked disabled>
-                    Format variable names
-                </label>
-                <label>
-                    <input type="checkbox" name="formatBoolFuncs" data-disabled="format" checked disabled>
-                    Format boolean function names
-                </label>
+                <hr>
+                <dd class="wrapper">
+                    <dl>
+                        <label>
+                            <input type="checkbox" class="formatter" name="formatComments" data-disabled="format" checked disabled>
+                            Format comments
+                        </label>
+                    </dl>
+                    <dl>
+                        <label>
+                            <input type="checkbox" class="formatter" name="formatConsts" data-disabled="format" checked disabled>
+                            Format constant names
+                        </label>
+                    </dl>
+                </dd>
+                <dd class="wrapper">
+                    <dl>
+                        <label>
+                            <input type="checkbox" class="formatter" name="formatVars" data-disabled="format" checked disabled>
+                            Format variable names
+                        </label>
+                    </dl>
+                    <dl>
+                        <label>
+                            <input type="checkbox" class="formatter" name="formatBoolFuncs" data-disabled="format" checked disabled>
+                            Format boolean function names
+                        </label>
+                    </dl>
+                </dd>
             </div>
             <div class="flags wrapper">
-                <label>
-                    <input type="checkbox" name="lowerCaseVariables">
-                    Format variable names as lower_case instead of camelCase
-                </label>
-                <label>
-                    <input type="checkbox" name="sentenceCasePointers" data-disabled="lowerCaseVariables">
-                    Format pointer names in SentenceCase instead of camelCase
-                </label>
+                <dd>
+                    <dl>
+                    <label>
+                        <input type="checkbox" class="flag" name="lowerCaseVariables">
+                        Format variable names as lower_case, not camelCase
+                    </label>
+                </dl>
+                <dl>
+                    <label>
+                        <input type="checkbox" class="flag" name="sentenceCasePointers" data-disabled="lowerCaseVariables">
+                        Format pointer names in SentenceCase, not camelCase
+                    </label>
+                    </dl>
+                </dd>
             </div>
-            <a class="btn wrapper" id="go" href="#">
+            <button class="btn wrapper" id="go" href="#">
                 Go
-            </a>
+            </button>
         </div>
     </main>
 
@@ -108,9 +136,9 @@
                 }
             }
             
-            if (this.parentNode.parentNode.classList.contains('flags')) {
+            if (this.classList.contains("flag")) {
                 flags[name] = this.checked;
-            } else if (this.parentNode.parentNode.classList.contains('formatters') && name !== "format") {
+            } else if (this.classList.contains("formatter") && name !== "format") {
                 if (this.checked) {
                     formatters.push(name);
                 } else {
@@ -137,9 +165,9 @@
                     });
                 }
                 
-                if (checkbox.parentNode.parentNode.classList.contains('flags')) {
+                if (checkbox.classList.contains('flag')) {
                     flags[name] = checkbox.checked;
-                } else if (checkbox.parentNode.parentNode.classList.contains('formatters') && checkbox.checked && name !== "format") {
+                } else if (checkbox.classList.contains('formatter') && checkbox.checked && name !== "format") {
                     formatters.push(name);
                 }
                 
