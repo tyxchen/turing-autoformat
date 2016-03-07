@@ -1,18 +1,31 @@
 # turing-autoformat
 
+[![Circle CI](https://circleci.com/gh/tyxchen/turing-autoformat/tree/master.svg?style=svg)](https://circleci.com/gh/tyxchen/turing-autoformat/tree/master)
+
 Autoformatter for the Turing language. This is not a linter.
 
-Currently supports renaming constants and boolean functions.
+Currently supports renaming constants, variables and boolean functions, as well as formatting "misplaced" comments.
+
+Requires NodeJS >= 4.0.0
 
 # Usage
 
-    node[js] autoformat.js [options] [files]
+    node[js] autoformat.js [files] [options] [flags]
 
 # Options
 
 |Name|Argument type|Description|
 |----|-------------|-----------|
-|`--extension`,`-e`|string|File extension to use for each of the outputted files. If omitted, the source files are overwritten.|
+|`--extension=`,`-e `|string|File extension to use for each of the outputted files|
+|`--out=`, `-o `|string|File to output formatted content to|
+|`--replace`, `-r`|boolean|Replace the contents of the original file|
+
+# Flags
+
+|Name|Description|
+|----|-----------|
+|`--flags.lowerCaseVariables`|Format variables as `lower_case` instead of `camelCase`|
+|`--flags.sentenceCasePointers`|Format pointers as `SentenceCase` instead of `camelCase`. If used with `--flags.lowerCaseVariables`, this flag will not have any effect|
 
 # Why make this?
 
