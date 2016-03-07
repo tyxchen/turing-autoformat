@@ -3,9 +3,7 @@ general:
     ignore:
       - gh-pages
 
-machine:
-  node:
-    version: 5.1.0
-    version: 4.2.2
-    version: 0.12.0
-    version: 0.10.34
+test:
+  override:
+    - nvm use 4.2 && npm test
+    - nvm use 5.1 && npm test
