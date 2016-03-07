@@ -12,8 +12,6 @@ var flags = argv.flags || null;
 
 var format = require('./format.js')(flags);
 
-console.log(argv)
-
 /**
  * Main procedure
  */
@@ -26,13 +24,13 @@ files.forEach(file => {
 
         data = format.format(data);
 
-        if (argv.s || argv.stdio) {
-            console.log(data);
-        } else {
+        if ((argv.e || argv.extension) || (argv.o || argv.out) || (argv.r || argv.replace)) {
             fs.writeFile(out, data, err => {
                 if (err) throw err;
                 console.log(out + " has been saved");
             });
+        } else {
+            console.log(data);
         }
     });
 });
