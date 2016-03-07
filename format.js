@@ -148,7 +148,9 @@ var TuringAutoformat = (passedFlags) => {
                 // Add variable name to list of variables used
                 vars.push(name);
 
-                // Convert from SentenceCase to camelCase
+                // Convert from lower_case to camelCase
+                name = name.replace(/_+([\w])/g, (m, l) => l.toUpperCase());
+                // and from SentenceCase to camelCase
                 name = name[0].toLowerCase() + name.slice(1);
 
                 // Add converted name to list of converted variables
