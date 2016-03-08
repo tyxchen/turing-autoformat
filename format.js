@@ -59,7 +59,7 @@ var TuringAutoformat = (passedFlags) => {
     };
 
     /**
-     * Automatically prepend `is_` to boolean functions
+     * Automatically prepend `is[_]` to boolean functions
      */
     exports.formatBoolFuncs = (data) => {
         var funcs = [],
@@ -72,13 +72,18 @@ var TuringAutoformat = (passedFlags) => {
         // .* - Matches the function's arguments and type delimiter
         // (?=boolean)) - Matches only functions that return a boolean type
         data = data.replace(/function (.+?)(?=[\s:\(].*(?=boolean))/g, (m, name) => {
-            // Replace only if function name does not start with `is_` already
-            if (name.slice(0, 3) !== "is_") {
+            // Replace only if function name does not start with `is` already
+            if (name.slice(0, 2) !== 'is') {
                 // Add function name to list of functions used
                 funcs.push(name)
 
-                // Add converted name to list of converted function names
-                replaced.push("is_" + name);
+                // Check if function name is in camelCase or lower_case. Defaults to latter.
+                // Then, add converted name to list of converted function names
+                if (name.indexOf('_') !== -1) {
+                    replaced.push('is_' + name);
+                } else {
+                    replaced.push('is' + name[0].toUpperCase() + name.slice(1));
+                }
             }
 
             return "function " + name;

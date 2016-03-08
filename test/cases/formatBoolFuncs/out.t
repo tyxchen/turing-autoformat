@@ -1,10 +1,19 @@
-function is_zero (i : int) : boolean
+function isZero (i : int) : boolean
     result i = 0
-end is_zero
+end isZero
 
-function is_one (i : int) : boolean
-    result i = 1
-end is_one
+function is_can_be_int (s : string) : boolean
+    result strintok (s)
+end is_can_be_int
 
-is_zero (0)
-is_one(1)
+function isCanBeReal (s : string) : boolean
+    result strrealtok (s)
+end isCanBeReal
+
+function is_an_int (s : string) : boolean
+    result strinok (s)
+end is_an_int
+
+function isAReal (s : string) : boolean
+    result strrealok (s)
+end isAReal

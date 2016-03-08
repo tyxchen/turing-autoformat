@@ -61,7 +61,7 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
     };
 
     /**
-     * Automatically prepend `is_` to boolean functions
+     * Automatically prepend `is[_]` to boolean functions
      */
     exports.formatBoolFuncs = function (data) {
         var funcs = [],
@@ -74,13 +74,18 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
         // .* - Matches the function's arguments and type delimiter
         // (?=boolean)) - Matches only functions that return a boolean type
         data = data.replace(/function (.+?)(?=[\s:\(].*(?=boolean))/g, function (m, name) {
-            // Replace only if function name does not start with `is_` already
-            if (name.slice(0, 3) !== "is_") {
+            // Replace only if function name does not start with `is` already
+            if (name.slice(0, 2) !== 'is') {
                 // Add function name to list of functions used
                 funcs.push(name);
 
-                // Add converted name to list of converted function names
-                replaced.push("is_" + name);
+                // Check if function name is in camelCase or lower_case. Defaults to latter.
+                // Then, add converted name to list of converted function names
+                if (name.indexOf('_') !== -1) {
+                    replaced.push('is_' + name);
+                } else {
+                    replaced.push('is' + name[0].toUpperCase() + name.slice(1));
+                }
             }
 
             return "function " + name;
@@ -150,7 +155,11 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
                 // Add variable name to list of variables used
                 vars.push(name);
 
-                // Convert from SentenceCase to camelCase
+                // Convert from lower_case to camelCase
+                name = name.replace(/_+([\w])/g, function (m, l) {
+                    return l.toUpperCase();
+                });
+                // and from SentenceCase to camelCase
                 name = name[0].toLowerCase() + name.slice(1);
 
                 // Add converted name to list of converted variables
@@ -184,12 +193,12 @@ var TuringAutoformat = function TuringAutoformat(passedFlags) {
         // ([ \t]*) - Indentation of the line
         // (.+) - Statement preceding comment
         // %(.+) - The comment itself
-        return data.replace(/([ \t]*)(.+)%(.+)/g, function (m, indentation, statement, comment) {
+        return data.replace(/([ \t]*)(.+)(?:[ \t]]*)%(.+)/g, function (m, indentation, statement, comment) {
             // Checks if the number of unescaped quotes before the % sign is odd
             // If it is, the % sign is in a string and we don't do any modifications
             if ((statement.match(/[^\\]"/g) || []).length % 2 || (statement.match(/[^\\]'/g) || []).length % 2 || statement.trim().length === 0) return m;
 
-            return indentation + "%" + comment + "\n" + indentation + statement;
+            return indentation + "%" + comment + "\r\n" + indentation + statement;
         });
     };
 
